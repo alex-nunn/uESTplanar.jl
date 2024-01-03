@@ -3,41 +3,46 @@ FFT convolution methods for computing the electrostatic potentials
 """
 
 using FFTW
+import Base: size
 
 export KernelConvolution
 
-
-Base.@kwdef struct KernelConvolution{T}
+struct KernelConvolution{T}
     xs::StepRangeLen{T}
     ys::StepRangeLen{T}
     kermat::Matrix{Complex{T}}
     buffer::Matrix{Complex{T}}
-end
 
-size(kconv::KernelConvolution) = (length(xs), length(ys))
-
-KernelConvolution{T}(xs::T, ys::T, kernel) where {T} = begin
-    # Build kernel matrix
-    kxs = kernel_samples(xs)
-    kys = kernel_samples(ys)
-
-    kermat = zeros(Complex{T}, 2 * length(xs), 2 * length(ys))
-    for i ∈ eachindex(kxs), j ∈ eachindex(kys)
-        kermat[i, j] = kernel(kxs[i], kys[j]) * step(xs) * step(ys)
+    KernelConvolution{T}(
+            xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel
+            ) where {T} = begin
+        # Build kernel matrix
+        kxs = kernel_samples(xs)
+        kys = kernel_samples(ys)
+    
+        kermat = zeros(Complex{T}, 2 * length(xs), 2 * length(ys))
+        for i ∈ eachindex(kxs), j ∈ eachindex(kys)
+            kermat[i, j] = kernel(kxs[i], kys[j]) * step(xs) * step(ys)
+        end
+        fft!(kermat)
+    
+        # Allocate buffer
+        buffer = Matrix{Complex{T}}(undef, 2 * length(xs), 2 * length(ys))
+    
+        return new{T}(
+            xs,
+            ys,
+            kermat,
+            buffer
+        )
     end
-    ftt!(kermat)
-
-    # Allocate buffer
-    buffer = Matrix{Complex{T}}(undef, 2 * length(xs), 2 * length(ys))
-
-    return KernelConvolution{T}(
-        xs,
-        ys,
-        kermat,
-        buffer
-    )
 end
 
+KernelConvolution(
+    xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel
+    ) where {T} = KernelConvolution{T}(xs, ys, kernel)
+
+Base.size(kconv::KernelConvolution) = (length(kconv.xs), length(kconv.ys))
 
 function (kconv::KernelConvolution{T})(out::Matrix{T}, mat::Matrix{T}) where {T}
     if size(kconv) != size(mat)
@@ -59,18 +64,16 @@ function (kconv::KernelConvolution{T})(out::Matrix{T}, mat::Matrix{T}) where {T}
     i0 = Nx ÷ 2 - 1
     j0 = Ny ÷ 2 - 1
 
-    for i ∈ 1:Nx, j ∈ 1:Ny
-        out[i, j] = real(result[i0 + i, j0 + j])
+    for i ∈ axes(out, 1), j ∈ axes(out, 2)
+        out[i, j] = real(kconv.buffer[i0 + i, j0 + j])
     end
 end
-
 
 function (kconv::KernelConvolution{T})(mat::Matrix{T}) where {T}
     out = Matrix{T}(undef, size(kconv)...)
     kconv(out, mat)
     return out
 end
-
 
 function kernel_samples(xs)
     N = length(xs)
