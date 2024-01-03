@@ -16,7 +16,7 @@ end
 
 size(kconv::KernelConvolution) = (length(xs), length(ys))
 
-KernelConvolution{T}(xs::T, ys::T, kernel) = begin
+KernelConvolution{T}(xs::T, ys::T, kernel) where {T} = begin
     # Build kernel matrix
     kxs = kernel_samples(xs)
     kys = kernel_samples(ys)
@@ -39,7 +39,7 @@ KernelConvolution{T}(xs::T, ys::T, kernel) = begin
 end
 
 
-function (kconv::KernelConvolution{T})(out::Matrix{T}, mat::Matrix{T})
+function (kconv::KernelConvolution{T})(out::Matrix{T}, mat::Matrix{T}) where {T}
     if size(kconv) != size(mat)
         throw(DomainError("`mat` must have same size as KernelConvolution"))
     end
@@ -65,7 +65,7 @@ function (kconv::KernelConvolution{T})(out::Matrix{T}, mat::Matrix{T})
 end
 
 
-function (kconv::KernelConvolution{T})(mat::Matrix{T})
+function (kconv::KernelConvolution{T})(mat::Matrix{T}) where {T}
     out = Matrix{T}(undef, size(kconv)...)
     kconv(out, mat)
     return out
