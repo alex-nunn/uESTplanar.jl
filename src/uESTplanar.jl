@@ -5,7 +5,7 @@ using Logging
 cache = ""
 
 include("kernels.jl")
-include("transforms.jl")
+include("convolutions.jl")
 
 
 function __init__()
