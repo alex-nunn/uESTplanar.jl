@@ -1,5 +1,6 @@
 # Development
 .vscode/*
+examples/*
 
 # Julia
 /Manifest.toml
