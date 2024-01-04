@@ -1,6 +1,4 @@
-# Examples
-
-## Convolutions in 2D dimensions
+# 1. Convolutions in 2D dimensions
 
 The `KernelConvolution` type allows us to rapidly convolve 2-dimensional 
 functions with a kernel function. 
@@ -33,11 +31,11 @@ heatmap(
     xs, ys, transpose(result);
     xlabel="x",
     ylabel="y",
-    size=(500, 500),
+    size=(450, 450),
     aspect_ratio=:equal,
-    dpi=200
+    dpi=100
 )
-savefig("01_convolution_example.png")
+savefig("01_convolution_example.png"); nothing # hide
 ```
 
 ![](01_convolution_example.png)

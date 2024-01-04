@@ -1,6 +1,7 @@
 # Development
 .vscode/*
-examples/*
+rough_examples/*
+**/.DS_Store
 
 # Julia
 /Manifest.toml

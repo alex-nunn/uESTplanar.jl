@@ -1,6 +1,8 @@
 using uESTplanar
 using Documenter
 
+ENV["GKSwstype"] = "100"
+
 DocMeta.setdocmeta!(uESTplanar, :DocTestSetup, :(using uESTplanar); recursive=true)
 
 makedocs(;
@@ -16,6 +18,11 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Examples" => [
+            "Convolutions" => "examples/01_convolutions.md",
+            "Electrostatic fields" => "examples/02_electrostatic_fields.md"
+        ],
+        "Reference" => "reference.md"
     ],
 )
 
