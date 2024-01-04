@@ -8,6 +8,7 @@
 
 ```@docs
 KernelConvolution
+round_pow2
 ```
 
 

@@ -20,7 +20,8 @@ makedocs(;
         "Home" => "index.md",
         "Examples" => [
             "Convolutions" => "examples/01_convolutions.md",
-            "Electrostatic fields" => "examples/02_electrostatic_fields.md"
+            "Potential fields" => "examples/02_potential_fields.md",
+            "Electric fields" => "examples/03_electric_fields.md"
         ],
         "Reference" => "reference.md"
     ],
