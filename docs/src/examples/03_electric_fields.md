@@ -1,4 +1,4 @@
-# Electric fields
+# 3. Electric fields
 
 We can also compute the electric field using convolutions. If the potential on
 the bottom plate, ``z = 0``, is given by ``f(x,y)`` then the electric field has

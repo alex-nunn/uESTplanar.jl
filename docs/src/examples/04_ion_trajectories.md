@@ -1,4 +1,4 @@
-# Ion trajectories
+# 4. Ion trajectories
 
 In this example we compute the trajectories of ions in a planar electrostatic trap.
 
