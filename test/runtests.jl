@@ -36,4 +36,15 @@ import uESTplanar: I, I_fast, ∂ρI_fast, ∂zI_fast, ∂ρI, ∂zI
             @test ∂zI_fast.(ρs, z) ≈ ∂zI.(ρs, z) atol=1e-3 rtol=1e-3
         end
     end
+
+    @testset "convolutions" begin
+        @testset "round_pow2" begin
+            @test round_pow2(2) == 2
+            @test round_pow2(3) == 2
+            @test round_pow2(4) == 4
+            @test round_pow2(5) == 4
+            @test round_pow2(7) == 8
+        end
+    end
+
 end
