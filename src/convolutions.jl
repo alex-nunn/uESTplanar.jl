@@ -10,15 +10,23 @@ export KernelConvolution, round_pow2
 """
     KernelConvolution{T, M}
 
-Convolution kernel computed over a fixed 2-dimensional grid `xs`, `ys`. Can be
-used to convolve 2-dimensional functions.
+Convolution kernel type contains a grid information and the kernel convolution
+matrix. Instances of KernelConvolution can be used to convolve 2-dimensional
+functions.
 
-The convolution is zero-padded.
+The convolution is zero-padded and the type also allocates a buffer allowing the
+kernel transform to be applied many times with minimal memory usage.
+
+# Types
+- `T<:AbstactFloat` floating point precision type
+- `M::Int` dimension of kernel function. For scalar kernals `M =1`, for vector 
+    kernels `M = 3`
 
 # Properties
-- `xs::StepRangeLen` grid of `x` values in cartesian grid
-- `ys::StepRangeLen` grid of `y` values in cartesian grid
-- `kermatt` 
+- `xs::StepRangeLen{T}` grid of `x` values in cartesian grid
+- `ys::StepRangeLen{T}` grid of `y` values in cartesian grid
+- `kermat::Array{Complex{T}}` M-dimensional Fourier space kernel matrix
+- `buffer::Array{Complex{T}}` M-dimensional buffer
 
 """
 struct KernelConvolution{T<:AbstractFloat, M}
@@ -28,9 +36,24 @@ struct KernelConvolution{T<:AbstractFloat, M}
     buffer::Array{Complex{T}}
 end
 
-# TODO: Docstring!!
-"""
 
+"""
+    KernelConvolution{T}(xs, ys, kernel, M=1)
+
+Construct a kernel convolution over grid `xs`, `ys` using `kernel(x, y)` function.
+The `M` specifies the dimension of the kernel function output.
+
+For example, if the kernel is scalar function then `kernel(x, y)` should return a
+scalar value and `M = 1`. If the kernel is a vector function where `kernel(x,y)`
+outputs a vector of length `n` then `M = n`.
+
+# Examples
+Defining a 2-dimensional kernel function
+```julia-repl
+julia> kernel = (x, y) -> [cos(x), sin(y)];
+julia> xs = range(0, 1, 128)
+julia> KernelConvolution{Float64}(xs, xs, kernel, 2);
+```
 """
 function KernelConvolution{T}(
             xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel, M=1) where {T}
@@ -55,6 +78,12 @@ function KernelConvolution{T}(
     )
 end
 
+"""
+    KernelConvolution(xs, ys, kernel, M=1)
+
+Behaves identically to `KernelConvolution{T}` except the numerical type is
+inferred from the arguments.
+"""
 function KernelConvolution(xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel, M=1) where {T}
     return KernelConvolution{T}(xs, ys, kernel, M)
 end
