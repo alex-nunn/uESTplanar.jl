@@ -28,9 +28,9 @@ kconv = KernelConvolution{Float32}(
     range(-5, 10; step=0.01f0),
     range(-5, 5; step=0.01f0),
     (x, y)-> [
-        ∂xK(x, y, z) + ∂xK(x, y, 1 - z),
-        ∂yK(x, y, z) + ∂yK(x, y, 1 - z),
-        ∂zK(x, y, z) - ∂zK(x, y, 1 - z),
+        -∂xK(x, y, z) - ∂xK(x, y, 1 - z),
+        -∂yK(x, y, z) - ∂yK(x, y, 1 - z),
+        -∂zK(x, y, z) + ∂zK(x, y, 1 - z),
     ],
     3
 )
