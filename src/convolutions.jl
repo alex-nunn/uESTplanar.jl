@@ -5,7 +5,7 @@ FFT convolution methods for computing the electrostatic potentials
 using FFTW
 import Base: size
 
-export KernelConvolution, round_pow2
+export KernelConvolution, round_pow2, size
 
 """
     KernelConvolution{T, M}
@@ -78,16 +78,15 @@ function KernelConvolution{T}(
     )
 end
 
-"""
-    KernelConvolution(xs, ys, kernel, M=1)
-
-Behaves identically to `KernelConvolution{T}` except the numerical type is
-inferred from the arguments.
-"""
 function KernelConvolution(xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel, M=1) where {T}
     return KernelConvolution{T}(xs, ys, kernel, M)
 end
 
+"""
+    size(kconv::KernelConvolution{T, M})
+
+Return the size of the convolution grid
+"""
 Base.size(kconv::KernelConvolution{T, M}) where {T, M} = (length(kconv.xs), length(kconv.ys))
 
 
