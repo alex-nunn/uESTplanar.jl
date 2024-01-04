@@ -11,6 +11,6 @@ This package can be installed in a Julia environment using the command,
 
 ```julia
 import Pkg
-Pkg.add("https://github.com/alex-nunn/uESTplanar.jl.git")
+Pkg.add(url="https://github.com/alex-nunn/uESTplanar.jl.git")
 ```
 
