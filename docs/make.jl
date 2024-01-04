@@ -21,7 +21,8 @@ makedocs(;
         "Examples" => [
             "Convolutions" => "examples/01_convolutions.md",
             "Potential fields" => "examples/02_potential_fields.md",
-            "Electric fields" => "examples/03_electric_fields.md"
+            "Electric fields" => "examples/03_electric_fields.md",
+            "Ion trajectories" => "examples/04_ion_trajectories.md"
         ],
         "Reference" => "reference.md"
     ],
