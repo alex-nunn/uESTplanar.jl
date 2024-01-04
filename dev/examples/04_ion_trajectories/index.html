@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Ion trajectories · uESTplanar.jl</title><meta name="title" content="Ion trajectories · uESTplanar.jl"/><meta property="og:title" content="Ion trajectories · uESTplanar.jl"/><meta property="twitter:title" content="Ion trajectories · uESTplanar.jl"/><meta name="description" content="Documentation for uESTplanar.jl."/><meta property="og:description" content="Documentation for uESTplanar.jl."/><meta property="twitter:description" content="Documentation for uESTplanar.jl."/><meta property="og:url" content="https://alex-nunn.github.io/uESTplanar.jl/examples/04_ion_trajectories/"/><meta property="twitter:url" content="https://alex-nunn.github.io/uESTplanar.jl/examples/04_ion_trajectories/"/><link rel="canonical" href="https://alex-nunn.github.io/uESTplanar.jl/examples/04_ion_trajectories/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">uESTplanar.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../01_convolutions/">Convolutions</a></li><li><a class="tocitem" href="../02_potential_fields/">Potential fields</a></li><li><a class="tocitem" href="../03_electric_fields/">Electric fields</a></li><li class="is-active"><a class="tocitem" href>Ion trajectories</a></li></ul></li><li><a class="tocitem" href="../../reference/">Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Ion trajectories</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Ion trajectories</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/alex-nunn/uESTplanar.jl/blob/main/docs/src/examples/04_ion_trajectories.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="4.-Ion-trajectories"><a class="docs-heading-anchor" href="#4.-Ion-trajectories">4. Ion trajectories</a><a id="4.-Ion-trajectories-1"></a><a class="docs-heading-anchor-permalink" href="#4.-Ion-trajectories" title="Permalink"></a></h1><p>In this example we compute the trajectories of ions in a planar electrostatic trap.</p><pre><code class="language-julia hljs">using Plots
+using Plots.Measures
+using uESTplanar
+using DifferentialEquations
+using Interpolations
+
+# Useful function
+&quot;&quot;&quot;
+    square_wave(x, α)
+
+Return the value of a square wave at `x` with duty-cycle `α` and unit period.
+&quot;&quot;&quot;
+function square_wave(x, α)
+    mod(x + 0.5α, 1.0) &lt; α ? 1.0 : 0.0
+end
+
+# Define electric field component of interest
+z = 0.5
+xs = range(-10, 10; step=0.01)
+ys = range(-5, 5; step=0.01)
+
+ker_pot = KernelConvolution(
+    xs,
+    ys,
+    (x, y) -&gt; K(x, y, z) + K(x, y, 1 - z)
+)
+
+ker_Ef = KernelConvolution(
+    xs,
+    ys,
+    (x, y) -&gt; [
+        -∂xK(x, y, z) - ∂xK(x, y, 1 - z),
+        -∂yK(x, y, z) - ∂yK(x, y, 1 - z)
+    ],
+    2
+)
+
+# Define the boundary potential
+λ = 1
+duty_cycle = x -&gt; clamp(abs(x / 6) - 0.25, 0.1, 0.9)
+f = (x, y) -&gt; square_wave(y / λ, duty_cycle(x))
+fmat = f.(ker_Ef.xs, ker_Ef.ys&#39;)
+
+# Compute potential &amp; electric fields
+pot_mat = ker_pot(fmat)
+E_field_mat = ker_Ef(fmat)
+
+# Interpolate
+pot_interp = cubic_spline_interpolation((xs, ys), pot_mat)
+Ex_interp = cubic_spline_interpolation((xs, ys), E_field_mat[:, :, 1])
+Ey_interp = cubic_spline_interpolation((xs, ys), E_field_mat[:, :, 2])
+
+# Define ODE function
+function F(du, v, u, p, t)
+    x, y = u
+    du[1] = Ex_interp(x, y)
+    du[2] = Ey_interp(x, y)
+end
+
+# Define callback to terminate ODE when the ion is out of bounds
+cb = VectorContinuousCallback(
+    (out, u, t, integrator) -&gt; begin
+        x = u[3]
+        y = u[4]
+
+        margin = 0.2
+        out[1] = x - (xs[begin] + margin)
+        out[2] = x - (xs[end] - margin)
+        out[3] = y - (ys[begin] + margin)
+        out[4] = y - (ys[end] - margin)
+    end,
+    (integrator, idx) -&gt; terminate!(integrator),
+    4
+)
+
+# Define &amp; solve ODE problem
+u0 = [0.0, 0.2]
+du0 = [1, 0.0]
+tspan = (0.0, 500.0)
+prob = SecondOrderODEProblem(F, du0, u0, tspan, callback=cb)
+sol = solve(prob, DPRKN6())
+
+# Compute ODE solution for a range of different times
+ts = range(tspan..., 1000)
+pos = stack(sol(t)[3:4] for t ∈ ts)</code></pre><p><img src="../04_01_duty_cycle.png" alt/></p><p><img src="../04_02_trajectory.png" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../03_electric_fields/">« Electric fields</a><a class="docs-footer-nextpage" href="../../reference/">Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 4 January 2024 23:34">Thursday 4 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
