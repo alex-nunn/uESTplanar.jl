@@ -40,7 +40,7 @@ import uESTplanar: I, I_fast, ∂ρI_fast, ∂zI_fast, ∂ρI, ∂zI
     @testset "convolutions" begin
         @testset "round_pow2" begin
             @test round_pow2(2) == 2
-            @test round_pow2(3) == 2
+            @test round_pow2(3) == 4
             @test round_pow2(4) == 4
             @test round_pow2(5) == 4
             @test round_pow2(7) == 8
