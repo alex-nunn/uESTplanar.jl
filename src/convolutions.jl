@@ -7,40 +7,55 @@ import Base: size
 
 export KernelConvolution
 
+"""
+    KernelConvolution{T}
+
+Convolution kernel computed over a fixed 2-dimensional grid `xs`, `ys`. Can be
+used to convolve 2-dimensional functions.
+
+The convolution is zero-padded.
+
+# Properties
+- `xs::StepRangeLen` grid of `x` values in cartesian grid
+- `ys::StepRangeLen` grid of `y` values in cartesian grid
+- `kermatt` 
+
+"""
 struct KernelConvolution{T}
     xs::StepRangeLen{T}
     ys::StepRangeLen{T}
     kermat::Matrix{Complex{T}}
     buffer::Matrix{Complex{T}}
-
-    KernelConvolution{T}(
-            xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel
-            ) where {T} = begin
-        # Build kernel matrix
-        kxs = kernel_samples(xs)
-        kys = kernel_samples(ys)
-    
-        kermat = zeros(Complex{T}, 2 * length(xs), 2 * length(ys))
-        for i ∈ eachindex(kxs), j ∈ eachindex(kys)
-            kermat[i, j] = kernel(kxs[i], kys[j]) * step(xs) * step(ys)
-        end
-        fft!(kermat)
-    
-        # Allocate buffer
-        buffer = Matrix{Complex{T}}(undef, 2 * length(xs), 2 * length(ys))
-    
-        return new{T}(
-            xs,
-            ys,
-            kermat,
-            buffer
-        )
-    end
 end
 
-KernelConvolution(
-    xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel
-    ) where {T} = KernelConvolution{T}(xs, ys, kernel)
+function KernelConvolution{T}(
+            xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel) where {T}
+    # Build kernel matrix
+    kxs = kernel_samples(xs)
+    kys = kernel_samples(ys)
+
+    kermat = zeros(Complex{T}, 2 * length(xs), 2 * length(ys))
+    for i ∈ eachindex(kxs), j ∈ eachindex(kys)
+        kermat[i, j] = kernel(kxs[i], kys[j]) * step(xs) * step(ys)
+    end
+    fft!(kermat)
+
+    # Allocate buffer
+    buffer = Matrix{Complex{T}}(undef, 2 * length(xs), 2 * length(ys))
+
+    return KernelConvolution{T}(
+        xs,
+        ys,
+        kermat,
+        buffer
+    )
+end
+
+function KernelConvolution(
+        xs::StepRangeLen{T}, ys::StepRangeLen{T}, kernel
+        ) where {T}
+    return KernelConvolution{T}(xs, ys, kernel)
+end
 
 Base.size(kconv::KernelConvolution) = (length(kconv.xs), length(kconv.ys))
 
