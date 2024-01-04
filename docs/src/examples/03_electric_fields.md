@@ -18,6 +18,7 @@ to compute the electric field.
 
 ```@example
 using Plots
+using Plots.Measures
 using LaTeXStrings
 using uESTplanar
 
